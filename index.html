@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apk rekap saldo by vixzaa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif; /* Menggunakan font Roboto */
+            text-align: center;
+            padding: 20px;
+            background: url('https://images.unsplash.com/photo-1506748686214-9e0a5f9a89a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MXwyNjEyNzN8MHwxfGFsbHwxfHx8fHx8fDE2NTcwNzY2OTQ&ixlib=rb-1.2.1&q=80&w=1080') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            background-color: #fff;
+            opacity: 0.9;
+            font-weight: bold; /* Menjadikan font tebal */
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #007bff;
+            font-weight: bold; /* Menjadikan font tebal */
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            font-weight: bold; /* Menjadikan font tebal */
+        }
+
+        button {
+            background-color: #6c757d; /* Mengubah warna tombol menjadi abu-abu */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            color: #fff;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold; /* Menjadikan font tebal */
+        }
+
+        button:hover {
+            background-color: #5a6268; /* Mengubah warna tombol saat hover */
+        }
+
+        .hasil {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #000;
+            white-space: pre-wrap;
+            font-weight: bold; /* Menjadikan font tebal */
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            margin: 5px 0;
+        }
+
+        .btn-salin {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #6c757d; /* Mengubah warna tombol menjadi abu-abu */
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 1em;
+            cursor: pointer;
+            display: none; /* Sembunyikan tombol secara default */
+            font-weight: bold; /* Menjadikan font tebal */
+        }
+
+        .btn-salin:hover {
+            background-color: #5a6268; /* Mengubah warna tombol saat hover */
+        }
+    </style>
+    <script>
+        function hitungBiayaAdmin() {
+            const inputText = document.getElementById("inputAngka").value;
+            const paragraphs = inputText.split('\n\n');
+            let hasil = "";
+            let totalParagraf = [];
+            let totalKeseluruhan = 0;
+
+            paragraphs.forEach((paragraph, index) => {
+                const entries = paragraph.split('\n').filter(line => line.trim() !== '');
+                let subTotal = 0;
+                let subHasil = "";
+
+                entries.forEach(entry => {
+                    entry = entry.replace(/(\d+)\s+lf/i, '$1lf');
+                    const parts = entry.split(/\s+/);
+                    const nama = parts.slice(0, -1).join(' ');
+                    const lastPart = parts[parts.length - 1];
+                    const angkaMatch = lastPart.match(/(\d+(?:\.\d+)?)(lf)?/i);
+
+                    if (angkaMatch) {
+                        let angkaStr = angkaMatch[1];
+                        const isLf = angkaMatch[2] === 'lf';
+                        let angkaInt;
+
+                        if (angkaStr.includes('.')) {
+                            angkaInt = parseFloat(angkaStr);
+                        } else {
+                            angkaInt = parseInt(angkaStr);
+                        }
+
+                        let total;
+                        if (isLf) {
+                            total = angkaInt - (angkaInt * 0.06); // Mengurangi 6% jika ada LF
+                        } else {
+                            total = (angkaInt * 2) - (angkaInt * 0.06); // Hitungan 2x dikurangi 6% jika tidak ada LF
+                        }
+                        
+                        subTotal += angkaInt;
+                        subHasil += `${nama} ${formatAngka(angkaInt)} // ${formatAngka(total)}\n`;
+                    } else {
+                        subHasil += `${entry}\n`;
+                    }
+                });
+
+                totalParagraf[index] = subTotal;
+                totalKeseluruhan += subTotal;
+                if (subTotal > 0) {
+                    hasil += `${subHasil.trim()}\n<span class="total">••Total= ${formatAngka(subTotal)}</span>\n\n`;
+                } else {
+                    hasil += `${subHasil.trim()}\n\n`;
+                }
+            });
+
+            // Menampilkan total keseluruhan
+            hasil += `<span class="total">Total Keseluruhan: ${formatAngka(totalKeseluruhan)}</span>`;
+            
+            // Menampilkan hasil
+            document.getElementById("hasil").innerHTML = hasil.trim();
+            document.getElementById("btnSalin").style.display = 'inline-block'; // Menampilkan tombol salin
+        }
+
+        function formatAngka(angka) {
+            return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        
+        function salinHasil() {
+            var hasilDiv = document.getElementById("hasil");
+            var range = document.createRange();
+            range.selectNode(hasilDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            try {
+                document.execCommand('copy');
+                alert('Hasil berhasil disalin ke clipboard!');
+            } catch (err) {
+                alert('Gagal menyalin hasil.');
+            }
+            window.getSelection().removeAllRanges();
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Apk rekap saldo by vixzaa</h1>
+        <p>Masukkan list disini mek:</p>
+        <textarea id="inputAngka" placeholder="Masukkan data disini..."></textarea>
+        <br><br>
+        <button onclick="hitungBiayaAdmin()">Hitung Biaya Admin</button>
+        <button id="btnSalin" class="btn-salin" onclick="salinHasil()">Salin Hasil</button>
+        <div id="hasil" class="hasil"></div>
+    </div>
+</body>
+</html>
